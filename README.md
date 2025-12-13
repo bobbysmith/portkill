@@ -31,7 +31,8 @@ Example (macOS):
 ```bash
 curl -L https://github.com/bobbysmith/portkill/releases/latest/download/portkill-macos -o portkill
 chmod +x portkill
-mv portkill /usr/local/bin/
+mkdir -p ~/.local/bin
+mv portkill ~/.local/bin/
 ```
 
 ---
