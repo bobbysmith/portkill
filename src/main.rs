@@ -1,12 +1,28 @@
 use std::env;
-use std::process::Command;
+use std::process::{Command, exit};
+
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() {
-    let port = match env::args().nth(1) {
+    let arg = env::args().nth(1);
+
+    match arg.as_deref() {
+        Some("--version") | Some("-v") => {
+            println!("portkill {VERSION}");
+            return;
+        }
+        Some("--help") | Some("-h") => {
+            eprintln!("usage: portkill <port>");
+            return;
+        }
+        _ => {}
+    }
+
+    let port: u16 = match arg.and_then(|p| p.parse().ok()) {
         Some(p) => p,
         None => {
-            println!("usage: portkill <port>");
-            return;
+            eprintln!("usage: portkill <port>");
+            exit(1);
         }
     };
 
@@ -16,8 +32,8 @@ fn main() {
     {
         Ok(o) => o,
         Err(_) => {
-            println!("portkill: failed to run lsof");
-            return;
+            eprintln!("portkill: failed to run lsof");
+            exit(1);
         }
     };
 
@@ -27,7 +43,7 @@ fn main() {
         .collect();
 
     if pids.is_empty() {
-        println!("nothing running on port {}", port);
+        println!("nothing running on port {port}");
         return;
     }
 
@@ -47,22 +63,13 @@ fn main() {
 
         match Command::new("kill").arg(pid).status() {
             Ok(status) if status.success() => {
-                println!(
-                    "killed port {} ({} at pid {})",
-                    port, process_name, pid
-                );
+                println!("killed port {port} ({process_name} at pid {pid})");
             }
             Ok(_) => {
-                println!(
-                    "found {} on port {} (pid {}) but could not kill it",
-                    process_name, port, pid
-                );
+                println!("found {process_name} on port {port} (pid {pid}) but could not kill it");
             }
             Err(_) => {
-                println!(
-                    "error killing {} on port {} (pid {})",
-                    process_name, port, pid
-                );
+                println!("error killing {process_name} on port {port} (pid {pid})");
             }
         }
     }

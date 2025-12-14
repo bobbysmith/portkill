@@ -8,9 +8,9 @@ A CLI utility to terminate processes listening on a TCP port.
 
 ## Why?
 
-When a port is already in use you usually need to look up the process and kill it manually. This kills it dead with no legwork.
+When a port is already in use, you usually need to look up the process and kill it manually.
 
-`portkill` reduces that to a single command
+`portkill` reduces that to a single command:
 
 ```bash
 portkill 3000
@@ -20,19 +20,29 @@ portkill 3000
 
 ## Installation
 
+### Homebrew (macOS & Linux)
+
+```bash
+brew tap YOURNAME/portkill
+brew install portkill
+```
+
+---
+
 ### Prebuilt binaries
 
-Prebuilt binaries are on github releases page.
+Prebuilt binaries are available on the
+GitHub Releases page: https://github.com/YOURNAME/portkill/releases
 
-Download the binary for your platform and place it in your `$PATH`.
+Download the archive for your platform, extract it, and place `portkill` somewhere in your `$PATH`.
 
 Example (macOS):
 
 ```bash
-curl -L https://github.com/bobbysmith/portkill/releases/latest/download/portkill-macos -o portkill
+curl -L https://github.com/YOURNAME/portkill/releases/latest/download/portkill-*-apple-darwin.zip -o portkill.zip
+unzip portkill.zip
 chmod +x portkill
-mkdir -p ~/.local/bin
-mv portkill ~/.local/bin/
+mv portkill /usr/local/bin/
 ```
 
 ---
@@ -40,11 +50,32 @@ mv portkill ~/.local/bin/
 ### From source (Cargo)
 
 ```bash
-cargo install --path . --force
+cargo install portkill
 ```
 
 This installs `portkill` into `~/.cargo/bin`.
-Make sure that `~/.cargo/bin` is included in your `$PATH`.
+
+Make sure `~/.cargo/bin` is included in your `$PATH`.
+
+---
+
+## Updating
+
+### Homebrew
+If you installed via Homebrew updates are handled automatically:
+```bash
+    brew update
+    brew upgrade portkill
+```
+
+### Prebuilt binaries
+Download the latest release for your platform and replace the existing binary in your PATH.
+
+### Cargo
+Reinstall using:
+```bash
+    cargo install portkill --force
+```
 
 ---
 
@@ -70,6 +101,16 @@ nothing running on port 8000
 $ portkill 80
 found nginx on port 80 (pid 123) but could not kill it
 ```
+
+Note: killing processes you do not own (like services bound to privileged ports) may fail unless `portkill` is run with sufficient permissions.
+
+
+---
+
+## Platform support
+
+- macOS (Intel & Apple Silicon)
+- Linux (glibc)
 
 ---
 
