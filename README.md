@@ -8,7 +8,7 @@ A CLI utility to terminate processes listening on a TCP port.
 
 ## Why?
 
-When a port is already in use, you usually need to look up the process and kill it manually.
+When a port is already in use you usually need to look up the process and kill it manually. This kills it dead with no legwork.
 
 `portkill` reduces that to a single command:
 
@@ -23,7 +23,7 @@ portkill 3000
 ### Homebrew (macOS & Linux)
 
 ```bash
-brew tap YOURNAME/portkill
+brew tap bobbysmith/portkill
 brew install portkill
 ```
 
@@ -32,14 +32,14 @@ brew install portkill
 ### Prebuilt binaries
 
 Prebuilt binaries are available on the
-GitHub Releases page: https://github.com/YOURNAME/portkill/releases
+GitHub Releases page: https://github.com/bobbysmith/portkill/releases
 
 Download the archive for your platform, extract it, and place `portkill` somewhere in your `$PATH`.
 
 Example (macOS):
 
 ```bash
-curl -L https://github.com/YOURNAME/portkill/releases/latest/download/portkill-*-apple-darwin.zip -o portkill.zip
+curl -L https://github.com/bobbysmith/portkill/releases/latest/download/portkill-*-apple-darwin.zip -o portkill.zip
 unzip portkill.zip
 chmod +x portkill
 mv portkill /usr/local/bin/
