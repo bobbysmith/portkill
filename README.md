@@ -64,8 +64,8 @@ Make sure `~/.cargo/bin` is included in your `$PATH`.
 ### Homebrew
 If you installed via Homebrew updates are handled automatically:
 ```bash
-    brew update
-    brew upgrade portkill
+brew update
+brew upgrade portkill
 ```
 
 ### Prebuilt binaries
@@ -74,7 +74,7 @@ Download the latest release for your platform and replace the existing binary in
 ### Cargo
 Reinstall using:
 ```bash
-    cargo install portkill --force
+cargo install portkill --force
 ```
 
 ---
