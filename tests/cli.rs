@@ -39,7 +39,7 @@ fn version_flag_prints_version() {
 }
 
 #[test]
-fn v_flag_prints_version() {
+fn short_version_flag_prints_version() {
     let mut cmd = portkill_cmd();
     cmd.arg("-v");
     cmd.assert()
@@ -57,7 +57,7 @@ fn help_flag_prints_usage() {
 }
 
 #[test]
-fn h_flag_prints_usage() {
+fn short_help_flag_prints_usage() {
     let mut cmd = portkill_cmd();
     cmd.arg("-h");
     cmd.assert()
