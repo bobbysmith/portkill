@@ -17,7 +17,25 @@ fn main() {
                 return;
             }
             "--help" | "-h" => {
-                eprintln!("usage: portkill <port>");
+println!(
+r#"
+portkill v{VERSION}
+
+A CLI utility to terminate processes listening on a TCP port.
+
+USAGE:
+    portkill <port> [options]
+
+OPTIONS:
+    -h, --help        Show this help message
+    -v, --version     Show version information
+    -d, --dry-run     Show what would be killed without killing it
+
+EXAMPLES:
+    portkill 3000
+    portkill --dry-run 3000
+"#
+);
                 return;
             }
             _ => port = arg.parse().ok(),

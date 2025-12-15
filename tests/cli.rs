@@ -53,7 +53,9 @@ fn help_flag_prints_usage() {
     cmd.arg("--help");
     cmd.assert()
         .success()
-        .stderr(predicates::str::contains("usage: portkill <port>"));
+        .stdout(predicates::str::contains("portkill <port> [options]"))
+        .stdout(predicates::str::contains("OPTIONS:"))
+        .stdout(predicates::str::contains("--dry-run"));
 }
 
 #[test]
@@ -62,6 +64,8 @@ fn short_help_flag_prints_usage() {
     cmd.arg("-h");
     cmd.assert()
         .success()
-        .stderr(predicates::str::contains("usage: portkill <port>"));
+        .stdout(predicates::str::contains("portkill <port> [options]"))
+        .stdout(predicates::str::contains("OPTIONS:"))
+        .stdout(predicates::str::contains("--dry-run"));
 }
 
