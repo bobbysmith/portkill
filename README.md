@@ -69,17 +69,17 @@ portkill <port>
 #### Examples
 ```
 $ portkill 3000
-killed port 3000 (node at pid 48291)
+[killed] Python (pid 123) on port 3000
 ```
 
 ```
 $ portkill 8000
-nothing running on port 8000
+no processes found on port 8000
 ```
 
 ```
 $ portkill 80
-found nginx on port 80 (pid 123) but could not kill it
+[error] failed to kill nginx (pid 123) on port 80
 ```
 
 Note: killing processes you do not own (like services bound to privileged ports) may fail unless `portkill` is run with sufficient permissions.

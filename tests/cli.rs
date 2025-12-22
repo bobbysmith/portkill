@@ -1,71 +1,153 @@
+use assert_cmd::cargo;
 use assert_cmd::Command;
-use predicates::str::contains;
+use predicates::prelude::*;
+use std::net::TcpListener;
+use std::process::{Child, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 fn portkill_cmd() -> Command {
-    assert_cmd::cargo::cargo_bin_cmd!("portkill")
+    cargo::cargo_bin_cmd!("portkill")
 }
 
 #[test]
 fn no_args_shows_usage() {
-    let mut cmd = portkill_cmd();
-    cmd.assert()
+    portkill_cmd()
+        .assert()
         .failure()
-        .stderr(contains("usage: portkill <port>"));
+        .stderr(predicate::str::contains("usage: portkill <port>"));
 }
 
 #[test]
 fn invalid_port_fails() {
-    let mut cmd = portkill_cmd();
-    cmd.arg("banana");
-    cmd.assert().failure();
+    portkill_cmd().arg("banana").assert().failure();
 }
 
 #[test]
 fn unused_port_prints_nothing_running() {
-    let mut cmd = portkill_cmd();
-    cmd.arg("54321");
-    cmd.assert()
+    portkill_cmd()
+        .arg("54321")
+        .assert()
         .success()
-        .stdout(contains("nothing running on port"));
+        .stdout(predicate::str::contains("no processes found on port"));
 }
 
 #[test]
 fn version_flag_prints_version() {
-    let mut cmd = portkill_cmd();
-    cmd.arg("--version");
-    cmd.assert()
+    portkill_cmd()
+        .arg("--version")
+        .assert()
         .success()
-        .stdout(predicates::str::contains("portkill "));
+        .stdout(predicate::str::contains("portkill "));
 }
 
 #[test]
 fn short_version_flag_prints_version() {
-    let mut cmd = portkill_cmd();
-    cmd.arg("-v");
-    cmd.assert()
+    portkill_cmd()
+        .arg("-v")
+        .assert()
         .success()
-        .stdout(predicates::str::contains("portkill "));
+        .stdout(predicate::str::contains("portkill "));
 }
 
 #[test]
 fn help_flag_prints_usage() {
-    let mut cmd = portkill_cmd();
-    cmd.arg("--help");
-    cmd.assert()
+    portkill_cmd()
+        .arg("--help")
+        .assert()
         .success()
-        .stdout(predicates::str::contains("portkill <port> [options]"))
-        .stdout(predicates::str::contains("OPTIONS:"))
-        .stdout(predicates::str::contains("--dry-run"));
+        .stdout(predicate::str::contains("portkill <port> [options]"))
+        .stdout(predicate::str::contains("OPTIONS:"))
+        .stdout(predicate::str::contains("--dry-run"));
 }
 
 #[test]
 fn short_help_flag_prints_usage() {
-    let mut cmd = portkill_cmd();
-    cmd.arg("-h");
-    cmd.assert()
+    portkill_cmd()
+        .arg("-h")
+        .assert()
         .success()
-        .stdout(predicates::str::contains("portkill <port> [options]"))
-        .stdout(predicates::str::contains("OPTIONS:"))
-        .stdout(predicates::str::contains("--dry-run"));
+        .stdout(predicate::str::contains("portkill <port> [options]"))
+        .stdout(predicate::str::contains("OPTIONS:"))
+        .stdout(predicate::str::contains("--dry-run"));
 }
 
+fn find_available_port() -> u16 {
+    TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port()
+}
+
+fn spawn_dummy_process_on_port(port: u16) -> Child {
+    let child = std::process::Command::new("nc")
+        .args(["-l", &port.to_string()])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("nc is required for interactive tests");
+
+    let start = Instant::now();
+    while start.elapsed() < Duration::from_secs(2) {
+        if TcpListener::bind(("127.0.0.1", port)).is_err() {
+            break;
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+
+    child
+}
+
+#[test]
+fn interactive_mode_confirms_yes_kills_process() {
+    let port = find_available_port();
+    let mut child = spawn_dummy_process_on_port(port);
+    let pid = child.id();
+
+    portkill_cmd()
+        .arg("-i")
+        .arg(port.to_string())
+        .write_stdin("y\n")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(format!("(pid {pid}) on port {port}")))
+        .stdout(predicate::str::contains("[killed]"));
+
+    thread::sleep(Duration::from_millis(50));
+    assert!(child.try_wait().unwrap().is_some());
+}
+
+#[test]
+fn interactive_mode_confirms_no_skips_process() {
+    let port = find_available_port();
+    let mut child = spawn_dummy_process_on_port(port);
+
+    portkill_cmd()
+        .arg("-i")
+        .arg(port.to_string())
+        .write_stdin("n\n")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("[skip]"));
+
+    assert!(child.try_wait().unwrap().is_none());
+    let _ = child.kill();
+}
+
+#[test]
+fn interactive_mode_default_enter_skips_process() {
+    let port = find_available_port();
+    let mut child = spawn_dummy_process_on_port(port);
+
+    portkill_cmd()
+        .arg("-i")
+        .arg(port.to_string())
+        .write_stdin("\n")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("[skip]"));
+
+    assert!(child.try_wait().unwrap().is_none());
+    let _ = child.kill();
+}

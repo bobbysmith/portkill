@@ -1,4 +1,5 @@
 use std::env;
+use std::io::{self, Write};
 use std::process::{Command, exit};
 use portkill::logic::*;
 use portkill::platform::real_lsof;
@@ -7,11 +8,13 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() {
     let mut dry_run = false;
+    let mut interactive = false;
     let mut port: Option<u16> = None;
 
     for arg in env::args().skip(1) {
         match arg.as_str() {
             "--dry-run" | "-d" => dry_run = true,
+            "--interactive" | "-i" => interactive = true,
             "--version" | "-v" => {
                 println!("portkill {VERSION}");
                 return;
@@ -27,13 +30,15 @@ USAGE:
     portkill <port> [options]
 
 OPTIONS:
-    -h, --help        Show this help message
-    -v, --version     Show version information
-    -d, --dry-run     Show what would be killed without killing it
+    -h, --help          Show this help message
+    -v, --version       Show version information
+    -d, --dry-run       Show what would be killed without killing it
+    -i, --interactive   Prompt before killing a process
 
 EXAMPLES:
     portkill 3000
     portkill --dry-run 3000
+    portkill -i 3000
 "#
 );
                 return;
@@ -52,11 +57,15 @@ EXAMPLES:
 
     let pids = find_pids(port, real_lsof);
 
+    fn format_description(process_name: &str, pid: &str, port: &str) -> String {
+        format!("{process_name} (pid {pid}) on port {port}")
+    }
+
     if pids.is_empty() {
         if dry_run {
-            println!("[dry-run] nothing would be killed on port {port}");
+            println!("[dry-run] no processes would be killed on port {port}");
         } else {
-            println!("nothing running on port {port}");
+            println!("no processes found on port {port}");
         }
         return;
     }
@@ -65,20 +74,38 @@ EXAMPLES:
         let process_name = find_process_name(&pid, real_lsof)
             .unwrap_or_else(|| "unknown".to_string());
 
+        let description = format_description(&process_name, &pid, &port.to_string());
+
         if dry_run {
-            println!("[dry-run] would kill port {port} ({process_name} at pid {pid})");
+            println!("[dry-run] would kill {description}");
             continue;
+        }
+
+        if interactive {
+            print!("kill {description}? [y/N] ");
+            io::stdout().flush().unwrap();
+
+            let mut input = String::new();
+            if io::stdin().read_line(&mut input).is_err() {
+                eprintln!("[error] input not read; skipping {description}");
+                continue;
+            }
+
+            if input.trim().to_lowercase() != "y" {
+                println!("[skip] {description}");
+                continue;
+            }
         }
 
         match Command::new("kill").arg(&pid).status() {
             Ok(status) if status.success() => {
-                println!("killed port {port} ({process_name} at pid {pid})");
+                println!("[killed] {description}");
             }
             Ok(_) => {
-                println!("found {process_name} on port {port} (pid {pid}) but could not kill it");
+                eprintln!("[error] failed to kill {description}");
             }
             Err(_) => {
-                eprintln!("[error] failed to kill {process_name} on port {port} (pid {pid})");
+                eprintln!("[error] could not execute kill for {description}");
             }
         }
     }
