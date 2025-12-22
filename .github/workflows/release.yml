@@ -56,7 +56,7 @@ jobs:
           fi
 
       - name: Publish Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.5.1
         with:
           files: |
             *.zip
