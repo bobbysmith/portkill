@@ -82,6 +82,16 @@ $ portkill 80
 [error] failed to kill nginx (pid 123) on port 80
 ```
 
+```
+$ portkill -d 3000
+[dry-run] would kill node (pid 123) on port 3000
+```
+
+```
+$ portkill -i 3000
+kill node (pid 123) on port 3000? [y/N] 
+```
+
 Note: killing processes you do not own (like services bound to privileged ports) may fail unless `portkill` is run with sufficient permissions.
 
 ---
