@@ -1,71 +1,41 @@
-use std::env;
+use clap::Parser;
 use std::io::{self, Write};
-use std::process::{Command, exit};
+use std::process::Command;
 use portkill::logic::*;
 use portkill::platform::real_lsof;
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
+/// CLI utility to terminate processes listening on a TCP port
+#[derive(Parser, Debug)]
+#[clap(
+    name = "portkill",
+    version = env!("CARGO_PKG_VERSION"),
+    author = "Bobby Smith",
+    about = "CLI utility to terminate processes listening on a TCP port",
+)]
+struct Cli {
+    port: u16,
+
+    #[clap(short, long, help = "Show what would be killed without killing it")]
+    dry_run: bool,
+
+    #[clap(short, long, help = "Ask for confirmation before killing a process")]
+    interactive: bool,
+}
 
 fn main() {
-    let mut dry_run = false;
-    let mut interactive = false;
-    let mut port: Option<u16> = None;
+    let args = Cli::parse();
 
-    for arg in env::args().skip(1) {
-        match arg.as_str() {
-            "--dry-run" | "-d" => dry_run = true,
-            "--interactive" | "-i" => interactive = true,
-            "--version" | "-v" => {
-                println!("portkill {VERSION}");
-                return;
-            }
-            "--help" | "-h" => {
-println!(
-r#"
-portkill v{VERSION}
-
-A CLI utility to terminate processes listening on a TCP port.
-
-USAGE:
-    portkill <port> [options]
-
-OPTIONS:
-    -h, --help          Show this help message
-    -v, --version       Show version information
-    -d, --dry-run       Show what would be killed without killing it
-    -i, --interactive   Prompt before killing a process
-
-EXAMPLES:
-    portkill 3000
-    portkill --dry-run 3000
-    portkill -i 3000
-"#
-);
-                return;
-            }
-            _ => port = arg.parse().ok(),
-        }
-    }
-
-    let port = match port {
-        Some(p) => p,
-        None => {
-            eprintln!("usage: portkill <port>");
-            exit(1);
-        }
-    };
-
-    let pids = find_pids(port, real_lsof);
+    let pids = find_pids(args.port, real_lsof);
 
     fn format_description(process_name: &str, pid: &str, port: &str) -> String {
         format!("{process_name} (pid {pid}) on port {port}")
     }
 
     if pids.is_empty() {
-        if dry_run {
-            println!("[dry-run] no processes would be killed on port {port}");
+        if args.dry_run {
+            println!("[dry-run] no processes would be killed on port {}", args.port);
         } else {
-            println!("no processes found on port {port}");
+            println!("no processes found on port {}", args.port);
         }
         return;
     }
@@ -74,14 +44,14 @@ EXAMPLES:
         let process_name = find_process_name(&pid, real_lsof)
             .unwrap_or_else(|| "unknown".to_string());
 
-        let description = format_description(&process_name, &pid, &port.to_string());
+        let description = format_description(&process_name, &pid, &args.port.to_string());
 
-        if dry_run {
+        if args.dry_run {
             println!("[dry-run] would kill {description}");
             continue;
         }
 
-        if interactive {
+        if args.interactive {
             print!("kill {description}? [y/N] ");
             io::stdout().flush().unwrap();
 

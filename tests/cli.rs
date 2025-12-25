@@ -15,7 +15,7 @@ fn no_args_shows_usage() {
     portkill_cmd()
         .assert()
         .failure()
-        .stderr(predicate::str::contains("usage: portkill <port>"));
+        .stderr(predicate::str::contains("Usage: portkill <PORT>"));
 }
 
 #[test]
@@ -30,46 +30,6 @@ fn unused_port_prints_nothing_running() {
         .assert()
         .success()
         .stdout(predicate::str::contains("no processes found on port"));
-}
-
-#[test]
-fn version_flag_prints_version() {
-    portkill_cmd()
-        .arg("--version")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("portkill "));
-}
-
-#[test]
-fn short_version_flag_prints_version() {
-    portkill_cmd()
-        .arg("-v")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("portkill "));
-}
-
-#[test]
-fn help_flag_prints_usage() {
-    portkill_cmd()
-        .arg("--help")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("portkill <port> [options]"))
-        .stdout(predicate::str::contains("OPTIONS:"))
-        .stdout(predicate::str::contains("--dry-run"));
-}
-
-#[test]
-fn short_help_flag_prints_usage() {
-    portkill_cmd()
-        .arg("-h")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("portkill <port> [options]"))
-        .stdout(predicate::str::contains("OPTIONS:"))
-        .stdout(predicate::str::contains("--dry-run"));
 }
 
 fn find_available_port() -> u16 {

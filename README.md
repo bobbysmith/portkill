@@ -3,30 +3,30 @@ portkill
 A CLI utility to terminate processes listening on a TCP port.
 `portkill` finds and stops a process that is holding onto a port without needing to manually inspect process lists or copy PIDs.
 
----
 
-### Why?
-When a port is already in use you usually need to look up the process, copy the pid, and then kill it. This kills it dead with none of the legwork.
+## Why?
+When a port is already in use, you usually need to look up the process, copy the PID, and then kill it.
 `portkill` reduces that to a single command:
 
 ```
 portkill 3000
 ```
 
----
 
-### Installation
-#### Homebrew (macOS & Linux)
+## Installation
+### Homebrew (macOS & Linux)
 ```
 brew tap bobbysmith/portkill
 brew install portkill
 ```
 
-#### Prebuilt binaries
-Prebuilt binaries are available at: https://github.com/bobbysmith/portkill/releases
-Download the archive for your platform, extract it, and place `portkill` somewhere in your `$PATH`.
+### Prebuilt binaries
+Prebuilt binaries are available at: [https://github.com/bobbysmith/portkill/releases](https://github.com/bobbysmith/portkill/releases)
 
-Example (macOS):
+Download the archive for your platform, extract it, and place `portkill` somewhere in your $PATH.
+
+#### Example (macOS):
+
 ```
 curl -L https://github.com/bobbysmith/portkill/releases/latest/download/portkill-*-apple-darwin.zip -o portkill.zip
 unzip portkill.zip
@@ -34,39 +34,44 @@ chmod +x portkill
 mv portkill /usr/local/bin/
 ```
 
-#### From source (Cargo)
+### From source (Cargo)
+
 ```
 cargo install portkill
 ```
+This installs `portkill` into ~/.cargo/bin.
+Make sure ~/.cargo/bin is included in your $PATH.
 
-This installs `portkill` into `~/.cargo/bin`.
-Make sure `~/.cargo/bin` is included in your `$PATH`.
 
----
-
-### Updating
-#### Homebrew
+## Updating
+### Homebrew
 ```
 brew update
 brew upgrade portkill
 ```
 
-#### Prebuilt binaries
+### Prebuilt binaries
 Download the latest release for your platform and replace the existing binary in your PATH.
 
-#### Cargo
+### Cargo
 ```
 cargo install portkill --force
 ```
 
----
-
-### Usage
+## Usage
 ```
 portkill <port>
 ```
 
-#### Examples
+### Flags
+```
+-d, --dry-run        Show what would be killed without actually killing processes
+-i, --interactive    Prompt before killing a process
+-h, --help           Show this help message
+-V, --version        Show version information
+```
+
+### Examples
 ```
 $ portkill 3000
 [killed] Python (pid 123) on port 3000
@@ -89,18 +94,16 @@ $ portkill -d 3000
 
 ```
 $ portkill -i 3000
-kill node (pid 123) on port 3000? [y/N] 
+kill node (pid 123) on port 3000? [y/N]
 ```
 
 Note: killing processes you do not own (like services bound to privileged ports) may fail unless `portkill` is run with sufficient permissions.
 
----
 
-### Platform support
+## Platform support
 - macOS (Intel & Apple Silicon)
 - Linux (glibc)
 
----
 
-### License
+## License
 MIT
